@@ -50,11 +50,13 @@ async function postGenerateContent(body: any) {
 export async function getRehabEstimate(
   address: string,
   files: UploadedFile[],
-  finishLevel: MockupLevel
+  finishLevel: MockupLevel,
+  purchasePrice: string   // ✅ added
 ): Promise<{ markdown: string; sources: GroundingSource[] }> {
   const prompt = `
 You are an expert real-estate rehab estimator. Provide a detailed, area-by-area rehabilitation cost estimate for the property at "${address}".
 
+Purchase Price: $${purchasePrice}
 All cost estimates should be tailored to a "${finishLevel}" finish level and be as precise as possible, aiming for a tight range of +/- 5%.
 
 Return your answer in **Markdown** using this structure:
