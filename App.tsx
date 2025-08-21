@@ -41,7 +41,7 @@ const App: React.FC = () => {
         setAnalyzedAddress(address);
 
         try {
-            const { markdown, sources } = await getRehabEstimate(address, files, finishLevel);
+            const { markdown, sources } = await getRehabEstimate(address, files, finishLevel, purchasePrice);
             const parsedEstimation = parseEstimationMarkdown(markdown);
             parsedEstimation.summary.groundingSources = sources;
             setEstimation(parsedEstimation);
