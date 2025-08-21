@@ -23,12 +23,12 @@ const App: React.FC = () => {
     const [isAnalyzingInvestment, setIsAnalyzingInvestment] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleAnalyze = async (
-  address: string,
-  files: UploadedFile[],
-  finishLevel: MockupLevel,
-  purchasePrice: string   // ✅ add this
-) => {
+    const { markdown, sources } = await getRehabEstimate(
+  address,
+  files,
+  finishLevel,
+  purchasePrice
+);
 
         if (!address || files.length === 0) {
             setError('Please provide a property address and at least one photo.');
