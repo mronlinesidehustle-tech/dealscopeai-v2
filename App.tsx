@@ -63,7 +63,6 @@ const handleAnalyze = async (
   }
 };
 
-
         if (!address || files.length === 0) {
             setError('Please provide a property address and at least one photo.');
             return;
