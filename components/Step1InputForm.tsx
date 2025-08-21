@@ -3,7 +3,7 @@ import type { UploadedFile, MockupLevel } from '../types';
 import { FINISH_LEVELS } from '../constants';
 
 interface Step1InputFormProps {
-    onAnalyze: (address: string, files: UploadedFile[], finishLevel: MockupLevel) => void;
+    onAnalyze: (address: string, files: UploadedFile[], finishLevel: MockupLevel, purchasePrice: string) => void;
     isLoading: boolean;
 }
 
@@ -28,6 +28,7 @@ const PhotoUploadIcon: React.FC = () => (
 
 export const Step1InputForm: React.FC<Step1InputFormProps> = ({ onAnalyze, isLoading }) => {
     const [address, setAddress] = useState<string>('');
+    const [purchasePrice, setPurchasePrice] = useState<string>('');
     const [files, setFiles] = useState<UploadedFile[]>([]);
     const [finishLevel, setFinishLevel] = useState<MockupLevel>('Intermediate');
     const [isDragOver, setIsDragOver] = useState<boolean>(false);
@@ -71,10 +72,10 @@ export const Step1InputForm: React.FC<Step1InputFormProps> = ({ onAnalyze, isLoa
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onAnalyze(address, files, finishLevel);
+        onAnalyze(address, files, finishLevel, purchasePrice);
     };
 
-    const isInputReady = address.trim() !== '' && files.length > 0;
+    const isInputReady = address.trim() !== '' && purchasePrice.trim() !== '' && files.length > 0;
 
     return (
         <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800/50 dark:border-slate-700">
@@ -94,6 +95,25 @@ export const Step1InputForm: React.FC<Step1InputFormProps> = ({ onAnalyze, isLoa
                         className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:placeholder-slate-400"
                         required
                     />
+                </div>
+
+                <div>
+                    <label htmlFor="purchase-price" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                        Purchase Price
+                    </label>
+                    <div className="relative">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 dark:text-slate-400">$</span>
+                        <input
+                            type="number"
+                            id="purchase-price"
+                            value={purchasePrice}
+                            onChange={(e) => setPurchasePrice(e.target.value)}
+                            placeholder="e.g., 375000"
+                            className="w-full pl-7 pr-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-sky-500 focus:border-sky-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100 dark:placeholder-slate-400"
+                            step="1000"
+                            required
+                        />
+                    </div>
                 </div>
 
                 <div>
