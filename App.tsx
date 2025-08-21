@@ -29,6 +29,19 @@ const handleAnalyze = async (
   finishLevel: MockupLevel,
   purchasePrice: string
 ) => {
+  // ✅ Basic validation
+  if (!address || files.length === 0) {
+    setError('Please provide a property address and at least one photo.');
+    return;
+  }
+
+  // ✅ Prep UI state
+  handleReset(); // clear any prior run
+  setIsLoading(true);
+  setError(null);
+  setUploadedFiles(files);
+  setAnalyzedAddress(address);
+
   try {
     const { markdown, sources } = await getRehabEstimate(
       address,
@@ -36,11 +49,20 @@ const handleAnalyze = async (
       finishLevel,
       purchasePrice
     );
-    // ...rest of the code
+    const parsedEstimation = parseEstimationMarkdown(markdown);
+    parsedEstimation.summary.groundingSources = sources;
+    setEstimation(parsedEstimation);
+    setCurrentView('report');
   } catch (e) {
     console.error(e);
+    const msg = e instanceof Error ? e.message : 'An unknown error occurred.';
+    setError(`Failed to generate the rehab estimate. ${msg}`);
+    setCurrentView('input');
+  } finally {
+    setIsLoading(false);
   }
 };
+
 
         if (!address || files.length === 0) {
             setError('Please provide a property address and at least one photo.');
