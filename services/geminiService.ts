@@ -6,7 +6,7 @@ if (!process.env.API_KEY) {
     throw new Error("API_KEY environment variable not set");
 }
 
-const API_KEY = process.env.API_KEY;
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 const fileToGenerativePart = (file: UploadedFile) => {
     return {
