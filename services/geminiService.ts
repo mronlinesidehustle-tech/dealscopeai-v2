@@ -10,7 +10,7 @@ import type {
 
 // ✅ Hardcoded API key for now (works in production)
 const ai = new GoogleGenerativeAI({
-  apiKey: "AIzaSyA_OrDWIJ8n_gr5I1OsWzvp4-YIPOKEm50",
+  apiKey: "AIzaSyCy6zskpwRsRzCdJgC05oMIdhIUZYKifoQ",
 });
 
 export const fileToGenerativePart = (file: UploadedFile) => {
