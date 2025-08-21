@@ -1,18 +1,25 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import type {
+  UploadedFile,
+  MockupLevel,
+  GroundingSource,
+  Estimation,
+  InvestmentAnalysis,
+} from "../types";
 
-import { GoogleGenAI, GenerateContentResponse, GroundingChunk } from "@google/genai";
-import type { UploadedFile, MockupLevel, GroundingSource, Estimation, InvestmentAnalysis } from '../types';
-
+// ✅ Reads from Vercel env var VITE_GEMINI_API_KEY
 const ai = new GoogleGenerativeAI({
-  apiKey: import.meta.env.VITE_GEMINI_API_KEY,  // ✅ matches what you set in Vercel
+  apiKey: import.meta.env.VITE_GEMINI_API_KEY || "",
 });
+export { ai }; // so other files can `import { ai }`
 
-const fileToGenerativePart = (file: UploadedFile) => {
-    return {
-        inlineData: {
-            data: file.base64,
-            mimeType: file.type,
-        },
-    };
+export const fileToGenerativePart = (file: UploadedFile) => {
+  return {
+    inlineData: {
+      data: file.base64,
+      mimeType: file.type,
+    },
+  };
 };
 
 export const getRehabEstimate = async (address: string, files: UploadedFile[], finishLevel: MockupLevel): Promise<{ markdown: string; sources: GroundingSource[] }> => {
