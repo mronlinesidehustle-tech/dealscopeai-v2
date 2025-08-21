@@ -2,11 +2,9 @@
 import { GoogleGenAI, GenerateContentResponse, GroundingChunk } from "@google/genai";
 import type { UploadedFile, MockupLevel, GroundingSource, Estimation, InvestmentAnalysis } from '../types';
 
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set");
-}
-
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || "" });
+const ai = new GoogleGenerativeAI({
+  apiKey: import.meta.env.VITE_GEMINI_API_KEY,  // ✅ matches what you set in Vercel
+});
 
 const fileToGenerativePart = (file: UploadedFile) => {
     return {
