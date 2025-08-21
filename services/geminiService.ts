@@ -1,5 +1,7 @@
+// services/geminiService.ts
+// Direct call to Gemini REST endpoint (no SDK). Works in the browser.
+// Uses ?key= API key in the query string to avoid header/key issues.
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import type {
   UploadedFile,
   MockupLevel,
@@ -8,34 +10,54 @@ import type {
   InvestmentAnalysis,
 } from "../types";
 
-// TEMP: hardcode the NEW Studio key (ends with Em50) to bypass any env issues
-const ai = new GoogleGenerativeAI({
-  apiKey: "AIzaSyA_OrDWIJ8n_gr5I1OsWzvp4-YIPOKEm50",
-});
+// ✅ Put the working Studio key here (the one ending in Em50)
+const GEMINI_API_KEY = "AIzaSyA_OrDWIJ8n_gr5I1OsWzvp4-YIPOKEm50";
 
-export const fileToGenerativePart = (file: UploadedFile) => {
+// Utilities
+const API_BASE = "https://generativelanguage.googleapis.com/v1beta";
+const MODEL_ID = "models/gemini-2.0-flash";
+
+function fileToGenerativePart(file: UploadedFile) {
   return {
-    inlineData: {
-      data: file.base64,
-      mimeType: file.type,
+    inline_data: {
+      mime_type: file.type,
+      data: file.base64, // assume this is pure base64 (no data URL prefix)
     },
   };
-};
+}
+
+async function postGenerateContent(body: any) {
+  const res = await fetch(
+    `${API_BASE}/${MODEL_ID}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Gemini HTTP ${res.status}: ${text}`);
+  }
+
+  return res.json();
+}
 
 // ---------- REHAB ESTIMATE ----------
-export const getRehabEstimate = async (
+export async function getRehabEstimate(
   address: string,
   files: UploadedFile[],
   finishLevel: MockupLevel
-): Promise<{ markdown: string; sources: GroundingSource[] }> => {
-  const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
-
+): Promise<{ markdown: string; sources: GroundingSource[] }> {
   const prompt = `
 You are an expert real-estate rehab estimator. Provide a detailed, area-by-area rehabilitation cost estimate for the property at "${address}".
 
 All cost estimates should be tailored to a "${finishLevel}" finish level and be as precise as possible, aiming for a tight range of +/- 5%.
 
-Follow this structure in **Markdown**:
+Return your answer in **Markdown** using this structure:
 
 ### Project Summary
 **Total Estimated Cost:** [e.g., $55,000 - $60,000]
@@ -57,29 +79,30 @@ Follow this structure in **Markdown**:
 | [Next Area] | ... | ... | ... | ... |
 `.trim();
 
-  const imageParts = files.map(fileToGenerativePart);
+  const parts = [{ text: prompt }, ...files.map(fileToGenerativePart)];
+  const body = { contents: [{ parts }] };
 
-  // Multimodal call: prompt text + image parts
-  const result = await model.generateContent([
-    { text: prompt },
-    ...imageParts,
-  ]);
+  const data = await postGenerateContent(body);
 
-  const markdown = result.response.text();
+  // Pull the first candidate's text
+  const text =
+    data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
 
-  // If you later add grounding, populate this. For now return empty.
+  // We’re not using grounding here; return empty for now
   const sources: GroundingSource[] = [];
 
-  return { markdown, sources };
-};
+  if (!text) {
+    throw new Error("No text returned from Gemini.");
+  }
+
+  return { markdown: text, sources };
+}
 
 // ---------- INVESTMENT ANALYSIS ----------
-export const getInvestmentAnalysis = async (
+export async function getInvestmentAnalysis(
   address: string,
   estimation: Estimation
-): Promise<InvestmentAnalysis> => {
-  const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
-
+): Promise<InvestmentAnalysis> {
   const totalRepairCost = estimation.summary.totalEstimatedCost;
   const propertySummary =
     estimation.repairs?.map((r) => `${r.area}: ${r.observations}`).join(". ") ||
@@ -115,20 +138,14 @@ Return ONLY a JSON object inside a Markdown code block, matching exactly this sc
 \`\`\`
 `.trim();
 
-  const result = await model.generateContent([{ text: prompt }]);
-  const text = result.response.text();
+  const body = { contents: [{ parts: [{ text: prompt }] }] };
+  const data = await postGenerateContent(body);
+  const text =
+    data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
 
-  const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
-  if (!jsonMatch || !jsonMatch[1]) {
-    throw new Error(
-      "Could not find JSON in the model's response for investment analysis."
-    );
+  const m = text.match(/```json\s*([\s\S]*?)\s*```/);
+  if (!m || !m[1]) {
+    throw new Error("Could not find JSON in the model's response for investment analysis.");
   }
-
-  const parsed = JSON.parse(jsonMatch[1]) as InvestmentAnalysis;
-
-  // If you add grounding later, attach sources here.
-  // parsed.groundingSources = [...]
-
-  return parsed;
-};
+  return JSON.parse(m[1]) as InvestmentAnalysis;
+}
