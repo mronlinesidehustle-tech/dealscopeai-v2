@@ -8,9 +8,8 @@ import type {
   InvestmentAnalysis,
 } from "../types";
 
-// ✅ Hardcoded API key for now (works in production)
 const ai = new GoogleGenerativeAI({
-  apiKey: "AIzaSyCy6zskpwRsRzCdJgC05oMIdhIUZYKifoQ",
+  apiKey: import.meta.env.VITE_GEMINI_API_KEY!,
 });
 
 export const fileToGenerativePart = (file: UploadedFile) => {
