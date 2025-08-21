@@ -8,9 +8,9 @@ import type {
   InvestmentAnalysis,
 } from "../types";
 
-// Read from Vercel env var VITE_GEMINI_API_KEY
+// ✅ Hardcoded API key for now (works in production)
 const ai = new GoogleGenerativeAI({
-  apiKey: import.meta.env.VITE_GEMINI_API_KEY || "",
+  apiKey: "AIzaSyA_OrDWIJ8n_gr5I1OsWzvp4-YIPOKEm50",
 });
 
 export const fileToGenerativePart = (file: UploadedFile) => {
