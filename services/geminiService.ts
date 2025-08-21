@@ -22,8 +22,8 @@ export const fileToGenerativePart = (file: UploadedFile) => {
   };
 };
 
-export const getRehabEstimate = async (address: string, files: UploadedFile[], finishLevel: MockupLevel): Promise<{ markdown: string; sources: GroundingSource[] }> => {
-    const model = 'gemini-2.5-flash';
+const MODEL_ID = 'gemini-2.0-flash';           // you can also use 'gemini-1.5-flash'
+const gemini = ai.getGenerativeModel({ model: MODEL_ID });
     
     const prompt = `
         System Instruction: You are an expert real-estate rehab estimator. Your task is to provide a detailed, area-by-area rehabilitation cost estimate based on photos of a property at "${address}".
