@@ -57,7 +57,7 @@ export async function getRehabEstimate(
 You are an expert real-estate rehab estimator. Provide a detailed, area-by-area rehabilitation cost estimate for the property at "${address}".
 
 Purchase Price: $${purchasePrice}
-All cost estimates should be tailored to a "${finishLevel}" finish level and be as precise as possible, aiming for a tight range of +/- 5%.
+All cost estimates should be tailored to a "${finishLevel}" finish level and be as precise as possible, aiming for a tight range of +/- 2%.
 
 Return your answer in **Markdown** using this structure:
 
@@ -104,6 +104,7 @@ Return your answer in **Markdown** using this structure:
 export async function getInvestmentAnalysis(
   address: string,
   estimation: Estimation
+  purchasePrice: string // ✅ ADDED: Accept purchase price parameter
 ): Promise<InvestmentAnalysis> {
   const totalRepairCost = estimation.summary.totalEstimatedCost;
   const propertySummary =
@@ -114,8 +115,11 @@ export async function getInvestmentAnalysis(
 You are an expert real estate investment analyst. Provide a complete analysis for the property at "${address}" using the estimated rehab costs below.
 
 Property:
+- Purchase Price: $${purchasePrice}
 - Estimated Rehab Cost: ${totalRepairCost}
 - Condition Summary: ${propertySummary}
+
+Use Google Search to find recent comparable sales in the local market to determine an accurate After Repair Value (ARV).
 
 Return ONLY a JSON object inside a Markdown code block, matching exactly this schema:
 
@@ -138,6 +142,8 @@ Return ONLY a JSON object inside a Markdown code block, matching exactly this sc
   ]
 }
 \`\`\`
+
+IMPORTANT: For suggestedMAO, calculate using the 70% rule: (ARV * 0.70) - Repair Costs
 `.trim();
 
   const body = { contents: [{ parts: [{ text: prompt }] }] };
@@ -149,5 +155,70 @@ Return ONLY a JSON object inside a Markdown code block, matching exactly this sc
   if (!m || !m[1]) {
     throw new Error("Could not find JSON in the model's response for investment analysis.");
   }
+
+  try {
+    const parsedJson = JSON.parse(m[1]);
+
+    // ✅ ADDED: Enhanced business logic with accurate MAO calculation
+    const parseCurrency = (value: string | number): number => {
+      if (typeof value === 'number') return value;
+      if (typeof value !== 'string') return 0;
+      const match = value.match(/[\d,.]+/);
+      if (!match) return 0;
+      return parseFloat(match[0].replace(/,/g, '')) || 0;
+    };
+
+    const getMaxFromRange = (range: string): number => {
+      if (typeof range !== 'string') return 0;
+      const matches = range.match(/[\d,.]+/g);
+      if (!matches) return 0;
+      const numbers = matches.map(m => parseFloat(m.replace(/,/g, ''))).filter(n => !isNaN(n));
+      return numbers.length > 0 ? Math.max(...numbers) : 0;
+    };
+
+    // Parse values
+    const numericPurchasePrice = parseFloat(purchasePrice) || 0;
+    const numericARV = parseCurrency(parsedJson.suggestedARV);
+    const numericMaxRehab = getMaxFromRange(estimation.summary.totalEstimatedCost);
+
+    // Calculate proper MAO using 70% rule
+    const numericMAO = (numericARV * 0.70) - numericMaxRehab;
+    
+    // Format for display
+    const formatCurrency = (num: number) => new Intl.NumberFormat('en-US', { 
+      style: 'currency', 
+      currency: 'USD', 
+      maximumFractionDigits: 0 
+    }).format(num);
+
+    // Add calculated values to response
+    parsedJson.purchasePrice = formatCurrency(numericPurchasePrice);
+    parsedJson.suggestedMAO = formatCurrency(numericMAO);
+
+    // Determine if deal fits criteria
+    const fitsCriteria = numericPurchasePrice > 0 && numericMAO > 0 && numericPurchasePrice <= numericMAO;
+    const profitPotential = numericARV - numericPurchasePrice - numericMaxRehab;
+    const marginPercentage = numericARV > 0 ? (profitPotential / numericARV) * 100 : 0;
+
+    // Enhanced deal analysis
+    let dealVerdict: string;
+    if (fitsCriteria && profitPotential > (numericARV * 0.15)) {
+      dealVerdict = `🟢 EXCELLENT DEAL: Purchase price is ${formatCurrency(numericMAO - numericPurchasePrice)} below the Maximum Allowable Offer (MAO) with strong profit potential of ${formatCurrency(profitPotential)} (${marginPercentage.toFixed(1)}% margin).`;
+    } else if (fitsCriteria && profitPotential > (numericARV * 0.10)) {
+      dealVerdict = `🔵 GOOD DEAL: Purchase price meets the 70% rule with acceptable profit potential of ${formatCurrency(profitPotential)} (${marginPercentage.toFixed(1)}% margin).`;
+    } else if (numericPurchasePrice <= (numericMAO * 1.1)) {
+      dealVerdict = `🟡 MARGINAL DEAL: Purchase price is ${formatCurrency(numericPurchasePrice - numericMAO)} above the MAO. Consider negotiating lower or factor in additional risks.`;
+    } else {
+      dealVerdict = `🔴 POOR DEAL: Purchase price of ${formatCurrency(numericPurchasePrice)} significantly exceeds the MAO of ${formatCurrency(numericMAO)}. This deal does not meet standard investor criteria.`;
+    }
+
+    parsedJson.investorFit.fitsCriteria = fitsCriteria;
+    parsedJson.investorFit.analysis = `${dealVerdict}\n\n**Detailed Analysis:**\n${parsedJson.investorFit.analysis}`;
+  
   return JSON.parse(m[1]) as InvestmentAnalysis;
+
+  } catch (parseError) {
+    console.error("Failed to parse investment analysis JSON:", parseError, "Raw response:", text);
+    throw new Error("Failed to get a valid investment analysis from the AI.");
+  }  
 }
