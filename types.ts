@@ -53,7 +53,7 @@ export interface ExitStrategy {
 }
 
 export interface InvestmentAnalysis {
-    purchasePrice: string; //ADDED: Purchase price field
+    purchasePrice?: string; //ADDED: Purchase price field
     suggestedARV: string;
     estimatedRepairCost: string;
     suggestedMAO: string;
