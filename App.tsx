@@ -13,6 +13,7 @@ type AppView = 'input' | 'report' | 'investment_analysis';
 
 const App: React.FC = () => {
   // Data states (caches)
+  const [purchasePrice, setPurchasePrice] = useState<string>('');   // ← NEW
   const [estimation, setEstimation] = useState<Estimation | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [analyzedAddress, setAnalyzedAddress] = useState<string>('');
@@ -87,7 +88,7 @@ const App: React.FC = () => {
     setIsAnalyzingInvestment(true);
     setError(null);
     try {
-      const analysis = await getInvestmentAnalysis(analyzedAddress, estimation);
+      const analysis = await getInvestmentAnalysis(analyzedAddress, estimation, purchasePrice);
       setInvestmentAnalysis(analysis);
       setCurrentView('investment_analysis');
     } catch (e) {
