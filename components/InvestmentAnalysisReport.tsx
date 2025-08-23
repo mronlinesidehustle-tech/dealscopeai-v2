@@ -74,7 +74,8 @@ export const InvestmentAnalysisReport: React.FC<InvestmentAnalysisReportProps> =
 
     return (
         <section className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <StatCard title="Purchase Price" value={analysis.purchasePrice} className="md:col-span-1" />
                 <StatCard title="Suggested ARV" value={analysis.suggestedARV} className="md:col-span-1" />
                 <StatCard title="Estimated Repair Cost" value={analysis.estimatedRepairCost} className="md:col-span-1" />
                 <StatCard title="Suggested MAO (70% Rule)" value={analysis.suggestedMAO} className="bg-sky-50 border-sky-200 dark:bg-sky-900/30 dark:border-sky-700/50 md:col-span-1" />
