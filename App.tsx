@@ -88,7 +88,7 @@ const App: React.FC = () => {
     setIsAnalyzingInvestment(true);
     setError(null);
     try {
-      const analysis = await getInvestmentAnalysis(analyzedAddress, estimation, purchasePriceState);
+      const analysis = await getInvestmentAnalysis(analyzedAddress, estimation, purchasePrice);
       setInvestmentAnalysis(analysis);
       setCurrentView('investment_analysis');
     } catch (e) {
