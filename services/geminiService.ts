@@ -103,7 +103,7 @@ Return your answer in **Markdown** using this structure:
 // ---------- INVESTMENT ANALYSIS ----------
 export async function getInvestmentAnalysis(
   address: string,
-  estimation: Estimation
+  estimation: Estimation,
   purchasePrice: string // ✅ ADDED: Accept purchase price parameter
 ): Promise<InvestmentAnalysis> {
   const totalRepairCost = estimation.summary.totalEstimatedCost;
