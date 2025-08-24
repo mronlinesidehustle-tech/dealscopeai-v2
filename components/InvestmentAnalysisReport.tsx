@@ -1,10 +1,10 @@
-// components/InvestmentAnalysisReport.tsx
-// ENHANCED VERSION: Combines editable functionality with advanced deal analysis
-
 import React, { useState } from 'react';
 import type { InvestmentAnalysis, ComparableProperty, ExitStrategy } from '../types';
 import { REPAIR_LEVEL_INFO } from '../constants';
-
+<InvestmentAnalysisReport
+  analysis={investmentAnalysis!}
+  purchasePriceOverride={purchasePrice}   // ✅ new fallback prop
+/>
 interface InvestmentAnalysisReportProps {
     analysis: InvestmentAnalysis;
     onUpdatePurchasePrice?: (newPrice: string) => void;
@@ -208,7 +208,7 @@ const CompsTable: React.FC<{ comps: ComparableProperty[] }> = ({ comps }) => (
 
 export const InvestmentAnalysisReport: React.FC<InvestmentAnalysisReportProps> = ({ 
     analysis, 
-    onUpdatePurchasePrice 
+    purchasePriceOverride 
 }) => {
     const repairInfo = REPAIR_LEVEL_INFO[analysis.estimatedRepairLevel] || REPAIR_LEVEL_INFO['Unknown'];
     const darkRepairInfoColor = repairInfo.color
