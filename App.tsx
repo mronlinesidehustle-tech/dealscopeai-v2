@@ -41,7 +41,6 @@ const App: React.FC = () => {
   setPurchasePrice(purchasePrice);   // ✅ keep this here
   setCurrentView('input');
   setIsLoading(true);
-  /* …rest of the code… */
 
 try {
       const { markdown, sources } = await getRehabEstimate(
