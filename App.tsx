@@ -77,18 +77,6 @@ try {
   setPurchasePrice('');              // ✅ add this line
 };
 
-  // Reset state
-  const handleReset = () => {
-    setEstimation(null);
-    setIsLoading(false);
-    setError(null);
-    setUploadedFiles([]);
-    setAnalyzedAddress('');
-    setInvestmentAnalysis(null);
-    setIsAnalyzingInvestment(false);
-    setCurrentView('input');
-  };
-
   // Analyze investment
   const handleAnalyzeInvestment = async () => {
   if (!estimation) return;
