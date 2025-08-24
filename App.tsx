@@ -39,18 +39,22 @@ const App: React.FC = () => {
     }
 
     handleReset(); // Clear old data for a new analysis
+    // 🚀 DEBUG: Your hardcoded test
+    const hardcodedPrice = '185000';
+    console.log('🚀 Setting hardcoded purchase price:', hardcodedPrice);
+    setPurchasePrice(hardcodedPrice);
     setIsLoading(true);
     setError(null);
     setUploadedFiles(files);
     setAnalyzedAddress(address);
-    setPurchasePrice(purchasePrice); // ✅ ADDED: Store the purchase price
 
     try {
       const { markdown, sources } = await getRehabEstimate(
         address,
         files,
         finishLevel,
-        purchasePrice
+        hardcodedPrice // ← Use hardcoded value here too
+
       );
       const parsedEstimation = parseEstimationMarkdown(markdown);
       parsedEstimation.summary.groundingSources = sources;
