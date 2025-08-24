@@ -40,6 +40,7 @@ const App: React.FC = () => {
     
   handleReset();                     // ← resets previous run    
   setPurchasePrice(purchasePrice);   // ✅ keep this here
+  setCurrentView('input');
 
   setIsLoading(true);
   /* …rest of the code… */
@@ -55,7 +56,6 @@ const App: React.FC = () => {
   setInvestmentAnalysis(null);
   setIsAnalyzingInvestment(false);
   setPurchasePrice('');              // ✅ add this line
-  setCurrentView('input');
 };
     
     try {
