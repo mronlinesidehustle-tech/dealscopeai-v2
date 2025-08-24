@@ -1,27 +1,51 @@
-// At the top of your InvestmentAnalysisReport component, add:
-export const InvestmentAnalysisReport: React.FC<InvestmentAnalysisReportProps> = ({ 
-    analysis, 
-    onUpdatePurchasePrice 
-}) => {
-    console.log("🎯 REPORT - Analysis received:", analysis); // ADD THIS LINE
-    console.log("🎯 REPORT - Purchase price in analysis:", analysis.purchasePrice); // ADD THIS LINE
-    
-    // ... rest of your component
-
 import React from 'react';
-import type { InvestmentAnalysis, ComparableProperty, ExitStrategy } from '../types';
+import type {
+  InvestmentAnalysis,
+  ComparableProperty,
+  ExitStrategy,
+} from '../types';
 import { REPAIR_LEVEL_INFO } from '../constants';
 
+/* ---- props ---- */
 interface InvestmentAnalysisReportProps {
-    analysis: InvestmentAnalysis;
+  analysis: InvestmentAnalysis;
+  // onUpdatePurchasePrice?: (price: string) => void   // ← uncomment if you’ll use it
 }
 
-const StatCard: React.FC<{ title: string; value: string; className?: string }> = ({ title, value, className = '' }) => (
-    <div className={`bg-white p-4 rounded-lg shadow-md border border-slate-200 dark:bg-slate-800/50 dark:border-slate-700 ${className}`}>
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{title}</p>
-        <p className="text-2xl font-bold text-slate-800 dark:text-slate-200">{value || 'N/A'}</p>
+/* ---- component ---- */
+export const InvestmentAnalysisReport: React.FC<InvestmentAnalysisReportProps> = ({
+  analysis,
+  // onUpdatePurchasePrice,
+}) => {
+  console.log('🎯 REPORT – analysis received:', analysis);
+  console.log('🎯 REPORT – purchase price in analysis:', analysis.purchasePrice);
+
+  /* small card helper */
+  const StatCard: React.FC<{ title: string; value: string; className?: string }> =
+    ({ title, value, className = '' }) => (
+      <div
+        className={`bg-white p-4 rounded-lg shadow-md border border-slate-200 dark:bg-slate-800/50 dark:border-slate-700 ${className}`}
+      >
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+          {title}
+        </p>
+        <p className="text-2xl font-bold text-slate-800 dark:text-slate-200">
+          {value || 'N/A'}
+        </p>
+      </div>
+    );
+
+  /* ------------ JSX ------------- */
+  return (
+    <div className="grid gap-4 md:grid-cols-4">
+      <StatCard title="Purchase Price" value={analysis.purchasePrice ?? 'N/A'} />
+      <StatCard title="Suggested ARV" value={analysis.suggestedARV} />
+      <StatCard title="Estimated Repair Cost" value={analysis.estimatedRepairCost} />
+      <StatCard title="Suggested MAO (70% Rule)" value={analysis.suggestedMAO} />
+      {/* ...rest of your report (deal analysis, comps, etc.) ... */}
     </div>
-);
+  );
+};
 
 const InvestorFitCard: React.FC<{ fit: { fitsCriteria: boolean; analysis: string } }> = ({ fit }) => {
     const bgColor = fit.fitsCriteria 
@@ -80,16 +104,6 @@ export const InvestmentAnalysisReport: React.FC<InvestmentAnalysisReportProps> =
         .replace('bg-orange-100', 'dark:bg-orange-900/50').replace('text-orange-800', 'dark:text-orange-300')
         .replace('bg-red-100', 'dark:bg-red-900/50').replace('text-red-800', 'dark:text-red-300')
         .replace('bg-slate-100', 'dark:bg-slate-700/50').replace('text-slate-800', 'dark:text-slate-300');
-
-
-    return (
-        <section className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <StatCard title="Purchase Price" value="$85,000" className="md:col-span-1" />
-                <StatCard title="Suggested ARV" value={analysis.suggestedARV} className="md:col-span-1" />
-                <StatCard title="Estimated Repair Cost" value={analysis.estimatedRepairCost} className="md:col-span-1" />
-                <StatCard title="Suggested MAO (70% Rule)" value={analysis.suggestedMAO} className="bg-sky-50 border-sky-200 dark:bg-sky-900/30 dark:border-sky-700/50 md:col-span-1" />
-            </div>
 
             <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800/50 dark:border-slate-700 space-y-6">
                 <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Deal Analysis</h3>
