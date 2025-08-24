@@ -86,39 +86,33 @@ const App: React.FC = () => {
   // Analyze investment
   // Fixed handleAnalyzeInvestment function - COPY THIS ENTIRE FUNCTION
 
-const handleAnalyzeInvestment = async () => {
-  console.log('🔍 DEBUG - Current purchasePrice state:', purchasePrice);
-  console.log('🔍 DEBUG - analyzedAddress:', analyzedAddress);
+    const handleAnalyzeInvestment = async () => {
+    setIsLoading(true);
+    setError('');
     
-  if (!estimation || !analyzedAddress) {
-    setError('Please generate a rehab estimate first.');
-    return;
-  }
-    
-  setIsAnalyzingInvestment(true);
-  setError(null);
-
-  try {
-    console.log('📊 Calling getInvestmentAnalysis with:', {
-      address: analyzedAddress,
-      purchasePrice: purchasePrice
-    });
-    
-    const analysisResult = await getInvestmentAnalysis(
-      analyzedAddress,
-      estimation,
-      purchasePrice
-    );
+    try {
+      // 🚀 HARDCODE PURCHASE PRICE FOR TESTING
+      const hardcodedPrice = '185000';
+      setPurchasePrice(hardcodedPrice);
       
-    console.log('✅ Investment analysis result:', analysisResult);
-    setInvestmentAnalysis(analysisResult); // ← Fixed: was "analysis", should be "analysisResult"
-  } catch (e) {
-    console.error('❌ Investment analysis failed:', e);
-    setError(`Failed to generate investment analysis: ${e instanceof Error ? e.message : 'Unknown error'}`);
-  } finally {
-    setIsAnalyzingInvestment(false);
-  }
-};
+      console.log('🚀 HARDCODED directly in investment analysis:', hardcodedPrice);
+      console.log('🔍 Current purchasePrice state before API call:', purchasePrice);
+      console.log('📊 Calling getInvestmentAnalysis with hardcoded price:', hardcodedPrice);
+      
+      const result = await getInvestmentAnalysis({
+        address: propertyData.address || address,
+        purchasePrice: hardcodedPrice // Use hardcoded value directly
+      });
+      
+      console.log('✅ Investment analysis result received:', result);
+      setInvestmentAnalysis(result);
+    } catch (err: any) {
+      console.error('❌ Investment analysis error:', err);
+      setError(`Investment analysis failed: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // ✅ ADDED: Handle purchase price updates
   const handleUpdatePurchasePrice = async (newPrice: string) => {
