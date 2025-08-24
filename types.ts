@@ -17,3 +17,17 @@ module.exports = {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+// types.ts
+export interface InvestmentAnalysis {
+  purchasePrice?: string;            // ✅ ensure this exists
+  suggestedARV: string;
+  estimatedRepairCost: string;
+  suggestedMAO: string;
+  investorFit: {
+    fitsCriteria: boolean;
+    analysis: string;
+  };
+  // ... any other fields you already have
+}
+
