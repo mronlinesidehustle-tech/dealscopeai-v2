@@ -85,27 +85,36 @@ const App: React.FC = () => {
 
   // Analyze investment
   const handleAnalyzeInvestment = async () => {
-    // If data is already cached, just switch the view
-    if (investmentAnalysis) {
-      setCurrentView('investment_analysis');
-      return;
-    }
+  console.log('🔍 DEBUG - Current purchasePrice state:', purchasePrice);
+  console.log('🔍 DEBUG - analyzedAddress:', analyzedAddress);
+    
     if (!estimation || !analyzedAddress) return;
-
+  }
+    
     setIsAnalyzingInvestment(true);
     setError(null);
+  
     try {
-      const analysis = await getInvestmentAnalysis(analyzedAddress, estimation, purchasePrice); // ✅ ADDED: Pass purchase price
+      console.log('📊 Calling getInvestmentAnalysis with:', {
+      address: analyzedAddress,
+      purchasePrice: purchasePrice
+    });
+    
+    const analysisResult = await getInvestmentAnalysis(
+      analyzedAddress,
+      estimation,
+      purchasePrice
+    );
+      
+      console.log('✅ Investment analysis result:', analysisResult);
       setInvestmentAnalysis(analysis);
-      setCurrentView('investment_analysis');
-    } catch (e) {
-      console.error(e);
-      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
-      setError(`Failed to generate investment analysis. ${errorMessage}`);
-    } finally {
-      setIsAnalyzingInvestment(false);
-    }
-  };
+      } catch (e) {
+    console.error('❌ Investment analysis failed:', e);
+    setError(`Failed to generate investment analysis: ${e instanceof Error ? e.message : 'Unknown error'}`);
+  } finally {
+    setIsAnalyzingInvestment(false);
+  }
+};
 
   // ✅ ADDED: Handle purchase price updates
   const handleUpdatePurchasePrice = async (newPrice: string) => {
