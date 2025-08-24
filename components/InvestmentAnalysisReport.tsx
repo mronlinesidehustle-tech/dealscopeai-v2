@@ -1,7 +1,3 @@
-/* components/InvestmentAnalysisReport.tsx
-   --------------------------------------------------
-   One-stop, clean copy - paste version              */
-
 import React from 'react';
 import type {
   InvestmentAnalysis,
