@@ -1,4 +1,3 @@
-// App.tsx
 import React, { useState } from 'react';
 import { Footer } from './components/Footer';
 import { Step1InputForm } from './components/Step1InputForm';
@@ -76,18 +75,6 @@ try {
   setIsAnalyzingInvestment(false);
   setPurchasePrice('');              // ✅ add this line
 };
-
-  // Reset state
-  const handleReset = () => {
-    setEstimation(null);
-    setIsLoading(false);
-    setError(null);
-    setUploadedFiles([]);
-    setAnalyzedAddress('');
-    setInvestmentAnalysis(null);
-    setIsAnalyzingInvestment(false);
-    setCurrentView('input');
-  };
 
   // Analyze investment
   const handleAnalyzeInvestment = async () => {
