@@ -87,27 +87,34 @@ const App: React.FC = () => {
   // Fixed handleAnalyzeInvestment function - COPY THIS ENTIRE FUNCTION
 
     const handleAnalyzeInvestment = async () => {
+    // Add alert to make sure function is called
+    alert('Investment Analysis Button Clicked!');
+    console.log('FUNCTION STARTED - handleAnalyzeInvestment');
+    
     setIsLoading(true);
     setError('');
     
     try {
       // 🚀 HARDCODE PURCHASE PRICE FOR TESTING
       const hardcodedPrice = '185000';
+      console.log('Setting hardcoded price:', hardcodedPrice);
       setPurchasePrice(hardcodedPrice);
       
-      console.log('🚀 HARDCODED directly in investment analysis:', hardcodedPrice);
-      console.log('🔍 Current purchasePrice state before API call:', purchasePrice);
-      console.log('📊 Calling getInvestmentAnalysis with hardcoded price:', hardcodedPrice);
+      // Skip API call for now, just set mock data
+      const mockResult = {
+        purchasePrice: hardcodedPrice,
+        suggestedARV: 275000,
+        estimatedRepairCost: 50000,
+        suggestedMAO: 142500,
+        dealAnalysis: 'This Deal Fits Investor Criteria',
+        dealDescription: 'Mock investment analysis with hardcoded purchase price.'
+      };
       
-      const result = await getInvestmentAnalysis({
-        address: propertyData.address || address,
-        purchasePrice: hardcodedPrice // Use hardcoded value directly
-      });
+      console.log('Setting mock investment analysis:', mockResult);
+      setInvestmentAnalysis(mockResult);
       
-      console.log('✅ Investment analysis result received:', result);
-      setInvestmentAnalysis(result);
     } catch (err: any) {
-      console.error('❌ Investment analysis error:', err);
+      console.error('Investment analysis error:', err);
       setError(`Investment analysis failed: ${err.message}`);
     } finally {
       setIsLoading(false);
