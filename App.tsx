@@ -84,18 +84,22 @@ const App: React.FC = () => {
   };
 
   // Analyze investment
-  const handleAnalyzeInvestment = async () => {
+  // Fixed handleAnalyzeInvestment function - COPY THIS ENTIRE FUNCTION
+
+const handleAnalyzeInvestment = async () => {
   console.log('🔍 DEBUG - Current purchasePrice state:', purchasePrice);
   console.log('🔍 DEBUG - analyzedAddress:', analyzedAddress);
     
-    if (!estimation || !analyzedAddress) return;
+  if (!estimation || !analyzedAddress) {
+    setError('Please generate a rehab estimate first.');
+    return;
   }
     
-    setIsAnalyzingInvestment(true);
-    setError(null);
-  
-    try {
-      console.log('📊 Calling getInvestmentAnalysis with:', {
+  setIsAnalyzingInvestment(true);
+  setError(null);
+
+  try {
+    console.log('📊 Calling getInvestmentAnalysis with:', {
       address: analyzedAddress,
       purchasePrice: purchasePrice
     });
@@ -106,9 +110,9 @@ const App: React.FC = () => {
       purchasePrice
     );
       
-      console.log('✅ Investment analysis result:', analysisResult);
-      setInvestmentAnalysis(analysis);
-      } catch (e) {
+    console.log('✅ Investment analysis result:', analysisResult);
+    setInvestmentAnalysis(analysisResult); // ← Fixed: was "analysis", should be "analysisResult"
+  } catch (e) {
     console.error('❌ Investment analysis failed:', e);
     setError(`Failed to generate investment analysis: ${e instanceof Error ? e.message : 'Unknown error'}`);
   } finally {
