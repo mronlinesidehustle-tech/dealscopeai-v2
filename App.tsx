@@ -1,4 +1,3 @@
-// App.tsx
 import React, { useState } from 'react';
 import { Footer } from './components/Footer';
 import { Step1InputForm } from './components/Step1InputForm';
