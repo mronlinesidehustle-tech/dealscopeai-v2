@@ -1,13 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { InvestmentAnalysis, ComparableProperty, ExitStrategy } from '../types';
 import { REPAIR_LEVEL_INFO } from '../constants';
-<InvestmentAnalysisReport
-  analysis={investmentAnalysis!}
-  purchasePriceOverride={purchasePrice}   // ✅ new fallback prop
-/>
+
 interface InvestmentAnalysisReportProps {
     analysis: InvestmentAnalysis;
-    onUpdatePurchasePrice?: (newPrice: string) => void;
 }
 
 const StatCard: React.FC<{ title: string; value: string; className?: string }> = ({ title, value, className = '' }) => (
@@ -17,165 +13,25 @@ const StatCard: React.FC<{ title: string; value: string; className?: string }> =
     </div>
 );
 
-// Enhanced Editable StatCard with better styling
-const EditableStatCard: React.FC<{ 
-    title: string; 
-    value: string; 
-    onUpdate: (newValue: string) => void;
-    className?: string 
-}> = ({ title, value, onUpdate, className = '' }) => {
-    const [isEditing, setIsEditing] = useState(false);
-    const [editValue, setEditValue] = useState(value.replace(/[$,]/g, ''));
-
-    const handleSave = () => {
-        const numericValue = parseFloat(editValue);
-        if (!isNaN(numericValue) && numericValue > 0) {
-            onUpdate(numericValue.toString());
-            setIsEditing(false);
-        }
-    };
-
-    const handleCancel = () => {
-        setEditValue(value.replace(/[$,]/g, ''));
-        setIsEditing(false);
-    };
-
-    const formatCurrency = (val: string) => {
-        const num = parseFloat(val.replace(/[$,]/g, ''));
-        return isNaN(num) ? val : new Intl.NumberFormat('en-US', { 
-            style: 'currency', 
-            currency: 'USD', 
-            maximumFractionDigits: 0 
-        }).format(num);
-    };
-
-    return (
-        <div className={`bg-white p-4 rounded-lg shadow-md border border-slate-200 dark:bg-slate-800/50 dark:border-slate-700 relative group cursor-pointer hover:shadow-lg transition-shadow ${className}`}>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{title}</p>
-            {isEditing ? (
-                <div className="flex items-center space-x-2 mt-1">
-                    <span className="text-2xl font-bold text-slate-800 dark:text-slate-200">$</span>
-                    <input
-                        type="number"
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="flex-1 text-xl font-bold bg-transparent border-b-2 border-sky-500 text-slate-800 dark:text-slate-200 focus:outline-none"
-                        autoFocus
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSave();
-                            if (e.key === 'Escape') handleCancel();
-                        }}
-                    />
-                    <button
-                        onClick={handleSave}
-                        className="text-green-600 hover:text-green-700 p-1 text-sm font-bold"
-                        title="Save (Enter)"
-                    >
-                        ✓
-                    </button>
-                    <button
-                        onClick={handleCancel}
-                        className="text-red-600 hover:text-red-700 p-1 text-sm"
-                        title="Cancel (Esc)"
-                    >
-                        ✕
-                    </button>
-                </div>
-            ) : (
-                <div className="flex items-center justify-between" onClick={() => setIsEditing(true)}>
-                    <p className="text-2xl font-bold text-slate-800 dark:text-slate-200">{formatCurrency(value)}</p>
-                    <div className="text-sky-600 hover:text-sky-700 p-1 opacity-0 group-hover:opacity-100 transition-opacity text-sm">
-                        ✏️ Edit
-                    </div>
-                </div>
-            )}
-        </div>
+const InvestorFitCard: React.FC<{ fit: { fitsCriteria: boolean; analysis: string } }> = ({ fit }) => {
+    const bgColor = fit.fitsCriteria 
+        ? 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700/50' 
+        : 'bg-red-100 border-red-300 dark:bg-red-900/30 dark:border-red-700/50';
+    const textColor = fit.fitsCriteria 
+        ? 'text-green-800 dark:text-green-200' 
+        : 'text-red-800 dark:text-red-200';
+    const icon = fit.fitsCriteria ? (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+    ) : (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
     );
-};
-
-// Enhanced InvestorFitCard with deal scoring
-const InvestorFitCard: React.FC<{ 
-    fit: { fitsCriteria: boolean; analysis: string };
-    purchasePrice?: string;
-    suggestedMAO?: string;
-    suggestedARV?: string;
-    estimatedRepairCost?: string;
-}> = ({ fit, purchasePrice, suggestedMAO, suggestedARV, estimatedRepairCost }) => {
-    
-    // Calculate deal metrics if we have the data
-    const calculateDealMetrics = () => {
-        if (!purchasePrice || !suggestedARV || !estimatedRepairCost) return null;
-        
-        const purchase = parseFloat(purchasePrice.replace(/[$,]/g, ''));
-        const arv = parseFloat(suggestedARV.replace(/[$,]/g, ''));
-        const repairs = parseFloat(estimatedRepairCost.replace(/[$,]/g, ''));
-        const mao = parseFloat(suggestedMAO?.replace(/[$,]/g, '') || '0');
-        
-        if (isNaN(purchase) || isNaN(arv) || isNaN(repairs)) return null;
-        
-        const totalInvestment = purchase + repairs;
-        const potentialProfit = arv - totalInvestment;
-        const profitMargin = (potentialProfit / arv) * 100;
-        const maoExcess = purchase - mao;
-        
-        return {
-            potentialProfit,
-            profitMargin,
-            maoExcess,
-            totalInvestment
-        };
-    };
-    
-    const metrics = calculateDealMetrics();
-    
-    // Determine deal quality
-    const getDealQuality = () => {
-        if (!metrics) return { color: 'bg-slate-100 border-slate-300', status: 'Unknown', icon: '❓' };
-        
-        if (metrics.maoExcess <= 0 && metrics.profitMargin >= 15) {
-            return { color: 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700/50', status: 'Excellent Deal', icon: '🟢' };
-        } else if (metrics.maoExcess <= 0 && metrics.profitMargin >= 10) {
-            return { color: 'bg-blue-100 border-blue-300 dark:bg-blue-900/30 dark:border-blue-700/50', status: 'Good Deal', icon: '🔵' };
-        } else if (Math.abs(metrics.maoExcess) <= (parseFloat(suggestedMAO?.replace(/[$,]/g, '') || '0') * 0.1)) {
-            return { color: 'bg-yellow-100 border-yellow-300 dark:bg-yellow-900/30 dark:border-yellow-700/50', status: 'Marginal Deal', icon: '🟡' };
-        } else {
-            return { color: 'bg-red-100 border-red-300 dark:bg-red-900/30 dark:border-red-700/50', status: 'Poor Deal', icon: '🔴' };
-        }
-    };
-    
-    const dealQuality = getDealQuality();
-    const textColor = dealQuality.color.includes('green') ? 'text-green-800 dark:text-green-200' :
-                     dealQuality.color.includes('blue') ? 'text-blue-800 dark:text-blue-200' :
-                     dealQuality.color.includes('yellow') ? 'text-yellow-800 dark:text-yellow-200' :
-                     dealQuality.color.includes('red') ? 'text-red-800 dark:text-red-200' :
-                     'text-slate-800 dark:text-slate-200';
 
     return (
-        <div className={`p-5 rounded-lg border ${dealQuality.color} ${textColor}`}>
-            <div className="flex items-center mb-3">
-                <span className="text-2xl mr-3">{dealQuality.icon}</span>
-                <h4 className="text-xl font-bold">{dealQuality.status}</h4>
+        <div className={`p-5 rounded-lg border ${bgColor} ${textColor}`}>
+            <div className="flex items-center mb-2">
+                {icon}
+                <h4 className="text-xl font-bold">{fit.fitsCriteria ? 'This Deal Fits Investor Criteria' : 'This Deal May Not Fit Criteria'}</h4>
             </div>
-            
-            {metrics && (
-                <div className="mb-4 grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <span className="font-semibold">Potential Profit:</span>
-                        <br />
-                        <span className={metrics.potentialProfit > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
-                            ${metrics.potentialProfit.toLocaleString()}
-                        </span>
-                    </div>
-                    <div>
-                        <span className="font-semibold">Profit Margin:</span>
-                        <br />
-                        <span className={metrics.profitMargin > 10 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
-                            {metrics.profitMargin.toFixed(1)}%
-                        </span>
-                    </div>
-                </div>
-            )}
-            
             <p className="text-sm whitespace-pre-wrap">{fit.analysis}</p>
         </div>
     );
@@ -206,10 +62,7 @@ const CompsTable: React.FC<{ comps: ComparableProperty[] }> = ({ comps }) => (
     </div>
 );
 
-export const InvestmentAnalysisReport: React.FC<InvestmentAnalysisReportProps> = ({ 
-    analysis, 
-    purchasePriceOverride 
-}) => {
+export const InvestmentAnalysisReport: React.FC<InvestmentAnalysisReportProps> = ({ analysis }) => {
     const repairInfo = REPAIR_LEVEL_INFO[analysis.estimatedRepairLevel] || REPAIR_LEVEL_INFO['Unknown'];
     const darkRepairInfoColor = repairInfo.color
         .replace('bg-green-100', 'dark:bg-green-900/50').replace('text-green-800', 'dark:text-green-300')
@@ -218,47 +71,19 @@ export const InvestmentAnalysisReport: React.FC<InvestmentAnalysisReportProps> =
         .replace('bg-red-100', 'dark:bg-red-900/50').replace('text-red-800', 'dark:text-red-300')
         .replace('bg-slate-100', 'dark:bg-slate-700/50').replace('text-slate-800', 'dark:text-slate-300');
 
-    const handlePurchasePriceUpdate = (newPrice: string) => {
-        if (onUpdatePurchasePrice) {
-            onUpdatePurchasePrice(newPrice);
-        }
-    };
 
-    // Responsive grid: 1 col on mobile, 2 on tablet, 4 on desktop for better mobile experience
     return (
         <section className="space-y-8">
-            {/* Stats Grid - Responsive Layout */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {onUpdatePurchasePrice && analysis.purchasePrice ? (
-                    <EditableStatCard 
-                        title="Purchase Price" 
-                        value={analysis.purchasePrice} 
-                        onUpdate={handlePurchasePriceUpdate}
-                        className="sm:col-span-1"
-                    />
-                ) : analysis.purchasePrice ? (
-                    <StatCard title="Purchase Price" value={analysis.purchasePrice} className="sm:col-span-1" />
-                ) : null}
-                
-                <StatCard title="Estimated Repair Cost" value={analysis.estimatedRepairCost} className="sm:col-span-1" />
-                <StatCard title="Suggested ARV" value={analysis.suggestedARV} className="sm:col-span-1" />
-                <StatCard 
-                    title="Suggested MAO (70% Rule)" 
-                    value={analysis.suggestedMAO} 
-                    className="bg-sky-50 border-sky-200 dark:bg-sky-900/30 dark:border-sky-700/50 sm:col-span-1" 
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard title="Purchase Price" value={analysis.purchasePrice} />
+                <StatCard title="Estimated Repair Cost" value={analysis.estimatedRepairCost} />
+                <StatCard title="Suggested ARV" value={analysis.suggestedARV} />
+                <StatCard title="Suggested MAO (70% Rule)" value={analysis.suggestedMAO} className="bg-sky-50 border-sky-200 dark:bg-sky-900/30 dark:border-sky-700/50" />
             </div>
 
-            {/* Enhanced Deal Analysis */}
             <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800/50 dark:border-slate-700 space-y-6">
                 <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Deal Analysis</h3>
-                <InvestorFitCard 
-                    fit={analysis.investorFit} 
-                    purchasePrice={analysis.purchasePrice}
-                    suggestedMAO={analysis.suggestedMAO}
-                    suggestedARV={analysis.suggestedARV}
-                    estimatedRepairCost={analysis.estimatedRepairCost}
-                />
+                <InvestorFitCard fit={analysis.investorFit} />
                 
                 <div>
                     <h4 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">Property Condition</h4>
@@ -272,13 +97,11 @@ export const InvestmentAnalysisReport: React.FC<InvestmentAnalysisReportProps> =
                 </div>
             </div>
 
-            {/* Comparable Sales */}
             <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800/50 dark:border-slate-700">
                 <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">Comparable Sales</h3>
                 <CompsTable comps={analysis.comparables} />
             </div>
             
-            {/* Exit Strategies */}
             <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800/50 dark:border-slate-700">
                 <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">Exit Strategies</h3>
                 <div className="space-y-4">
@@ -291,7 +114,6 @@ export const InvestmentAnalysisReport: React.FC<InvestmentAnalysisReportProps> =
                 </div>
             </div>
 
-            {/* Data Sources */}
             {analysis.groundingSources && analysis.groundingSources.length > 0 && (
                 <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 dark:bg-slate-800/50 dark:border-slate-700">
                     <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-4">Data Sources</h3>
