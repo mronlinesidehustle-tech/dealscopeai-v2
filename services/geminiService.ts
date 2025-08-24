@@ -105,6 +105,13 @@ export async function getInvestmentAnalysis(
   estimation: Estimation,
   purchasePrice: string // ✅ ADDED: Accept purchase price parameter
 ): Promise<InvestmentAnalysis> {
+  const result: InvestmentAnalysis = /* whatever you already create */;
+
+  // ✅ Guarantee the price is on the object (string is fine; or format as $)
+  result.purchasePrice = purchasePrice;
+
+  return result;
+}
   const totalRepairCost = estimation.summary.totalEstimatedCost;
   const propertySummary =
     estimation.repairs?.map((r) => `${r.area}: ${r.observations}`).join(". ") ||
