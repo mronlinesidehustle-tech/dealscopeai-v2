@@ -37,8 +37,8 @@ const App: React.FC = () => {
       setError('Please provide a property address and at least one photo.');
       return;
     }
-      setPurchasePrice(purchasePrice);   // <-- this stores the price in state
-    
+
+    setPurchasePrice(purchasePrice);   // <-- this stores the price in state
     handleReset(); // Clear old data for a new analysis
     setIsLoading(true);
     setError(null);
