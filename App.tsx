@@ -183,14 +183,30 @@ export default function RealEstateAnalyzer() {
         )}
 
         {/* Error Display */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-lg">
-            <div className="flex items-center">
-              <AlertCircle className="w-5 h-5 text-red-400 mr-2" />
-              <p className="text-red-700">{error}</p>
-            </div>
-          </div>
-        )}
+{error && (
+  <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-lg">
+    <div className="flex items-center">
+      <AlertCircle className="w-5 h-5 text-red-400 mr-2" />
+      <p className="text-red-700">{error}</p>
+    </div>
+  </div>
+)}
+
+{/* 🚨 TEMPORARY DEBUG TEST BUTTON - ADD THIS */}
+<div className="mb-6 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
+  <h3 className="font-bold text-yellow-800 mb-2">🧪 DEBUG TEST</h3>
+  <button
+    onClick={() => {
+      alert('Direct test button clicked!');
+      console.log('Direct test button works!');
+      handleAnalyzeInvestment();
+    }}
+    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+  >
+    🚨 DIRECT TEST - Click Me
+  </button>
+  <p className="text-sm text-yellow-700 mt-2">This button tests if the function works directly</p>
+</div>
 
         {/* Search Section */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
