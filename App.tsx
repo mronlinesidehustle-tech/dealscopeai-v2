@@ -1,3 +1,5 @@
+// App.tsx - PATCH: Add purchase price state management
+
 import React, { useState } from 'react';
 import { Footer } from './components/Footer';
 import { Step1InputForm } from './components/Step1InputForm';
@@ -12,11 +14,10 @@ type AppView = 'input' | 'report' | 'investment_analysis';
 
 const App: React.FC = () => {
   // Data states (caches)
-  // 🆕  remember the user’s purchase price
-  const [purchasePrice, setPurchasePrice] = useState<string>('');   // ← NEW
   const [estimation, setEstimation] = useState<Estimation | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [analyzedAddress, setAnalyzedAddress] = useState<string>('');
+  const [purchasePrice, setPurchasePrice] = useState<string>(''); // ✅ ADDED: Store purchase price
   const [investmentAnalysis, setInvestmentAnalysis] = useState<InvestmentAnalysis | null>(null);
 
   // UI/Flow states
@@ -36,13 +37,15 @@ const App: React.FC = () => {
       setError('Please provide a property address and at least one photo.');
       return;
     }
-    
-  handleReset();                     // ← resets previous run    
-  setPurchasePrice(purchasePrice);   // ✅ keep this here
-  setCurrentView('input');
-  setIsLoading(true);
 
-try {
+    handleReset(); // Clear old data for a new analysis
+    setIsLoading(true);
+    setError(null);
+    setUploadedFiles(files);
+    setAnalyzedAddress(address);
+    setPurchasePrice(purchasePrice); // ✅ ADDED: Store the purchase price
+
+    try {
       const { markdown, sources } = await getRehabEstimate(
         address,
         files,
@@ -61,39 +64,65 @@ try {
     } finally {
       setIsLoading(false);
     }
-};
-    
-  // 2️⃣  handleReset – WIPE the old price when you click “Start New Analysis”
+  };
+
+  // Reset state
   const handleReset = () => {
-  setEstimation(null);
-  setIsLoading(false);
-  setError(null);
-  setUploadedFiles([]);
-  setAnalyzedAddress('');
-  setInvestmentAnalysis(null);
-  setIsAnalyzingInvestment(false);
-  setPurchasePrice('');              // ✅ add this line
-};
+    setEstimation(null);
+    setIsLoading(false);
+    setError(null);
+    setUploadedFiles([]);
+    setAnalyzedAddress('');
+    setPurchasePrice(''); // ✅ ADDED: Reset purchase price
+    setInvestmentAnalysis(null);
+    setIsAnalyzingInvestment(false);
+    setCurrentView('input');
+  };
 
   // Analyze investment
   const handleAnalyzeInvestment = async () => {
-  if (!estimation) return;
+    // If data is already cached, just switch the view
+    if (investmentAnalysis) {
+      setCurrentView('investment_analysis');
+      return;
+    }
+    if (!estimation || !analyzedAddress) return;
 
-  setIsAnalyzingInvestment(true);
-  try {
-    const analysis = await getInvestmentAnalysis(
-      analyzedAddress,
-      estimation,
-      purchasePrice        // <-- use the STATE variable here
-    );
-    setInvestmentAnalysis(analysis);
-    setCurrentView('investment_analysis');
-  } catch (err) {
-    setError(String(err));
-  } finally {
-    setIsAnalyzingInvestment(false);
-  }
-};
+    setIsAnalyzingInvestment(true);
+    setError(null);
+    try {
+      const analysis = await getInvestmentAnalysis(analyzedAddress, estimation, purchasePrice); // ✅ ADDED: Pass purchase price
+      setInvestmentAnalysis(analysis);
+      setCurrentView('investment_analysis');
+    } catch (e) {
+      console.error(e);
+      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
+      setError(`Failed to generate investment analysis. ${errorMessage}`);
+    } finally {
+      setIsAnalyzingInvestment(false);
+    }
+  };
+
+  // ✅ ADDED: Handle purchase price updates
+  const handleUpdatePurchasePrice = async (newPrice: string) => {
+    if (!estimation || !analyzedAddress) return;
+    
+    setPurchasePrice(newPrice);
+    
+    // Re-run the investment analysis with the new price
+    setIsAnalyzingInvestment(true);
+    setError(null);
+    try {
+      const analysis = await getInvestmentAnalysis(analyzedAddress, estimation, newPrice);
+      setInvestmentAnalysis(analysis);
+    } catch (e) {
+      console.error(e);
+      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
+      setError(`Failed to update investment analysis. ${errorMessage}`);
+    } finally {
+      setIsAnalyzingInvestment(false);
+    }
+  };
 
   const handleBackToReport = () => {
     setCurrentView('report');
@@ -118,7 +147,10 @@ try {
               Investment Analysis:{' '}
               <span className="text-sky-600 dark:text-sky-400 break-words">{analyzedAddress}</span>
             </h2>
-            <InvestmentAnalysisReport analysis={investmentAnalysis} />
+            <InvestmentAnalysisReport 
+              analysis={investmentAnalysis} 
+              onUpdatePurchasePrice={handleUpdatePurchasePrice} // ✅ ADDED: Pass update handler
+            />
           </div>
         ) : null;
 
