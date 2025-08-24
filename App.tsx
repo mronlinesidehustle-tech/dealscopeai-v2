@@ -38,13 +38,13 @@ const App: React.FC = () => {
       return;
     }
 
-    setPurchasePrice(purchasePrice);   // <-- this stores the price in state
     handleReset(); // Clear old data for a new analysis
     setIsLoading(true);
     setError(null);
     setUploadedFiles(files);
     setAnalyzedAddress(address);
-
+    setPurchasePrice(purchasePrice);   
+    
     try {
       const { markdown, sources } = await getRehabEstimate(
         address,
