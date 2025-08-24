@@ -1,6 +1,5 @@
 // services/geminiService.ts
-// Direct call to Gemini REST endpoint (no SDK). Works in the browser.
-// Uses ?key= API key in the query string to avoid header/key issues.
+// PATCH: Add purchase price to investment analysis and improve MAO calculation
 
 import type {
   UploadedFile,
@@ -10,7 +9,7 @@ import type {
   InvestmentAnalysis,
 } from "../types";
 
-// ✅ Put the working Studio key here (the one ending in Em50)
+// Put the working Studio key here (the one ending in Em50)
 const GEMINI_API_KEY = "AIzaSyA_OrDWIJ8n_gr5I1OsWzvp4-YIPOKEm50";
 
 // Utilities
@@ -51,7 +50,7 @@ export async function getRehabEstimate(
   address: string,
   files: UploadedFile[],
   finishLevel: MockupLevel,
-  purchasePrice: string   // ✅ added
+  purchasePrice: string
 ): Promise<{ markdown: string; sources: GroundingSource[] }> {
   const prompt = `
 You are an expert real-estate rehab estimator. Provide a detailed, area-by-area rehabilitation cost estimate for the property at "${address}".
@@ -90,7 +89,7 @@ Return your answer in **Markdown** using this structure:
   const text =
     data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join("") ?? "";
 
-  // We’re not using grounding here; return empty for now
+  // We're not using grounding here; return empty for now
   const sources: GroundingSource[] = [];
 
   if (!text) {
@@ -112,9 +111,9 @@ export async function getInvestmentAnalysis(
     "No detailed area observations provided.";
 
   const prompt = `
-You are an expert real estate investment analyst. Provide a complete analysis for the property at "${address}" using the estimated rehab costs below.
+You are an expert real estate investment analyst. Provide a complete analysis for the property at "${address}" using the data below.
 
-Property:
+Property Information:
 - Purchase Price: $${purchasePrice}
 - Estimated Rehab Cost: ${totalRepairCost}
 - Condition Summary: ${propertySummary}
@@ -214,11 +213,11 @@ IMPORTANT: For suggestedMAO, calculate using the 70% rule: (ARV * 0.70) - Repair
 
     parsedJson.investorFit.fitsCriteria = fitsCriteria;
     parsedJson.investorFit.analysis = `${dealVerdict}\n\n**Detailed Analysis:**\n${parsedJson.investorFit.analysis}`;
-  
-  return JSON.parse(m[1]) as InvestmentAnalysis;
 
+    return parsedJson as InvestmentAnalysis;
+    
   } catch (parseError) {
     console.error("Failed to parse investment analysis JSON:", parseError, "Raw response:", text);
     throw new Error("Failed to get a valid investment analysis from the AI.");
-  }  
+  }
 }
