@@ -41,24 +41,10 @@ const App: React.FC = () => {
   handleReset();                     // ← resets previous run    
   setPurchasePrice(purchasePrice);   // ✅ keep this here
   setCurrentView('input');
-
   setIsLoading(true);
   /* …rest of the code… */
-};
-    
-  // 2️⃣  handleReset – WIPE the old price when you click “Start New Analysis”
-  const handleReset = () => {
-  setEstimation(null);
-  setIsLoading(false);
-  setError(null);
-  setUploadedFiles([]);
-  setAnalyzedAddress('');
-  setInvestmentAnalysis(null);
-  setIsAnalyzingInvestment(false);
-  setPurchasePrice('');              // ✅ add this line
-};
-    
-    try {
+
+try {
       const { markdown, sources } = await getRehabEstimate(
         address,
         files,
@@ -77,7 +63,19 @@ const App: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+};
+    
+  // 2️⃣  handleReset – WIPE the old price when you click “Start New Analysis”
+  const handleReset = () => {
+  setEstimation(null);
+  setIsLoading(false);
+  setError(null);
+  setUploadedFiles([]);
+  setAnalyzedAddress('');
+  setInvestmentAnalysis(null);
+  setIsAnalyzingInvestment(false);
+  setPurchasePrice('');              // ✅ add this line
+};
 
   // Reset state
   const handleReset = () => {
