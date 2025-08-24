@@ -13,6 +13,7 @@ type AppView = 'input' | 'report' | 'investment_analysis';
 
 const App: React.FC = () => {
   // Data states (caches)
+  // 🆕  remember the user’s purchase price
   const [purchasePrice, setPurchasePrice] = useState<string>('');   // ← NEW
   const [estimation, setEstimation] = useState<Estimation | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -36,7 +37,8 @@ const App: React.FC = () => {
       setError('Please provide a property address and at least one photo.');
       return;
     }
-
+      setPurchasePrice(purchasePrice);   // <-- this stores the price in state
+    
     handleReset(); // Clear old data for a new analysis
     setIsLoading(true);
     setError(null);
@@ -78,27 +80,23 @@ const App: React.FC = () => {
 
   // Analyze investment
   const handleAnalyzeInvestment = async () => {
-    // If data is already cached, just switch the view
-    if (investmentAnalysis) {
-      setCurrentView('investment_analysis');
-      return;
-    }
-    if (!estimation || !analyzedAddress) return;
+  if (!estimation) return;
 
-    setIsAnalyzingInvestment(true);
-    setError(null);
-    try {
-      const analysis = await getInvestmentAnalysis(analyzedAddress, estimation, purchasePrice);
-      setInvestmentAnalysis(analysis);
-      setCurrentView('investment_analysis');
-    } catch (e) {
-      console.error(e);
-      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
-      setError(`Failed to generate investment analysis. ${errorMessage}`);
-    } finally {
-      setIsAnalyzingInvestment(false);
-    }
-  };
+  setIsAnalyzingInvestment(true);
+  try {
+    const analysis = await getInvestmentAnalysis(
+      analyzedAddress,
+      estimation,
+      purchasePrice        // <-- use the STATE variable here
+    );
+    setInvestmentAnalysis(analysis);
+    setCurrentView('investment_analysis');
+  } catch (err) {
+    setError(String(err));
+  } finally {
+    setIsAnalyzingInvestment(false);
+  }
+};
 
   const handleBackToReport = () => {
     setCurrentView('report');
