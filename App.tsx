@@ -37,13 +37,26 @@ const App: React.FC = () => {
       setError('Please provide a property address and at least one photo.');
       return;
     }
+    
+  handleReset();                     // ← resets previous run    
+  setPurchasePrice(purchasePrice);   // ✅ keep this here
 
-    handleReset(); // Clear old data for a new analysis
-    setIsLoading(true);
-    setError(null);
-    setUploadedFiles(files);
-    setAnalyzedAddress(address);
-    setPurchasePrice(purchasePrice);   
+  setIsLoading(true);
+  /* …rest of the code… */
+};
+    
+  // 2️⃣  handleReset – WIPE the old price when you click “Start New Analysis”
+  const handleReset = () => {
+  setEstimation(null);
+  setIsLoading(false);
+  setError(null);
+  setUploadedFiles([]);
+  setAnalyzedAddress('');
+  setInvestmentAnalysis(null);
+  setIsAnalyzingInvestment(false);
+  setPurchasePrice('');              // ✅ add this line
+  setCurrentView('input');
+};
     
     try {
       const { markdown, sources } = await getRehabEstimate(
