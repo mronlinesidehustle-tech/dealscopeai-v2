@@ -1,3 +1,13 @@
+// At the top of your InvestmentAnalysisReport component, add:
+export const InvestmentAnalysisReport: React.FC<InvestmentAnalysisReportProps> = ({ 
+    analysis, 
+    onUpdatePurchasePrice 
+}) => {
+    console.log("🎯 REPORT - Analysis received:", analysis); // ADD THIS LINE
+    console.log("🎯 REPORT - Purchase price in analysis:", analysis.purchasePrice); // ADD THIS LINE
+    
+    // ... rest of your component
+
 import React from 'react';
 import type { InvestmentAnalysis, ComparableProperty, ExitStrategy } from '../types';
 import { REPAIR_LEVEL_INFO } from '../constants';
