@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Footer } from './components/Footer';
 import { Step1InputForm } from './components/Step1InputForm';
 import { EstimationReport } from './components/EstimationReport';
@@ -11,9 +11,22 @@ import { parseEstimationMarkdown } from './utils/parsing';
 type AppView = 'input' | 'report' | 'investment_analysis';
 
 const App: React.FC = () => {
+    console.log('App component rendering...');
+    
+    useEffect(() => {
+        console.log('App component mounted');
+        console.log('Current environment variables:', {
+            NODE_ENV: import.meta.env.MODE,
+            VITE_API_KEY: import.meta.env.VITE_API_KEY ? 'Set' : 'Not set'
+        });
+    }, []);
+
     // Check for required environment variables
     const apiKey = import.meta.env.VITE_API_KEY;
+    console.log('API Key check:', apiKey ? 'Present' : 'Missing');
+    
     if (!apiKey) {
+        console.log('Rendering API key error message');
         return (
             <div className="min-h-screen font-sans flex flex-col items-center justify-center p-8 bg-slate-50 text-slate-800">
                 <div className="max-w-md text-center">
@@ -34,6 +47,8 @@ const App: React.FC = () => {
             </div>
         );
     }
+
+    console.log('API key present, rendering main app');
 
     // Data states (caches)
     const [estimation, setEstimation] = useState<Estimation | null>(null);

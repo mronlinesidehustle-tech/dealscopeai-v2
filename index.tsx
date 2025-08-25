@@ -3,6 +3,7 @@ import './index.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 console.log('App starting...');
 console.log('Environment check:', {
@@ -21,7 +22,9 @@ const root = ReactDOM.createRoot(rootElement);
 console.log('Rendering App component...');
 root.render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>
 );
 
