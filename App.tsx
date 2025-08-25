@@ -45,7 +45,11 @@ const App: React.FC = () => {
         } catch (e) {
             console.error(e);
             const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
-            setError(`Failed to generate the rehab estimate. ${errorMessage}`);
+            if (errorMessage.includes('VITE_API_KEY')) {
+                setError('Missing API key. Please configure VITE_API_KEY in your environment settings and redeploy.');
+            } else {
+                setError(`Failed to generate the rehab estimate. ${errorMessage}`);
+            }
             setCurrentView('input');
         } finally {
             setIsLoading(false);
@@ -82,7 +86,11 @@ const App: React.FC = () => {
         } catch (e) {
             console.error(e);
             const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
-            setError(`Failed to generate investment analysis. ${errorMessage}`);
+            if (errorMessage.includes('VITE_API_KEY')) {
+                setError('Missing API key. Please configure VITE_API_KEY in your environment settings and redeploy.');
+            } else {
+                setError(`Failed to generate investment analysis. ${errorMessage}`);
+            }
         } finally {
             setIsAnalyzingInvestment(false);
         }

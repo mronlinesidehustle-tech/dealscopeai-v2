@@ -1,12 +1,17 @@
 import { GoogleGenAI, GenerateContentResponse, GroundingChunk } from "@google/genai";
 import type { UploadedFile, MockupLevel, GroundingSource, Estimation, InvestmentAnalysis } from '../types';
 
-const apiKey = import.meta.env.VITE_API_KEY as string | undefined;
-if (!apiKey) {
-    throw new Error("VITE_API_KEY environment variable not set");
-}
-
-const ai = new GoogleGenAI({ apiKey });
+let aiClient: GoogleGenAI | null = null;
+const getClient = (): GoogleGenAI => {
+    const apiKey = import.meta.env.VITE_API_KEY as string | undefined;
+    if (!apiKey) {
+        throw new Error("VITE_API_KEY environment variable not set");
+    }
+    if (!aiClient) {
+        aiClient = new GoogleGenAI({ apiKey });
+    }
+    return aiClient;
+};
 
 const fileToGenerativePart = (file: UploadedFile) => {
     return {
@@ -70,7 +75,7 @@ export const getRehabEstimate = async (address: string, files: UploadedFile[], f
 
     const imageParts = files.map(fileToGenerativePart);
     
-    const result: GenerateContentResponse = await ai.models.generateContent({
+    const result: GenerateContentResponse = await getClient().models.generateContent({
         model,
         contents: { parts: [{ text: prompt }, ...imageParts] },
         config: { 
@@ -153,7 +158,7 @@ export const getInvestmentAnalysis = async (
         *   **exitStrategies:** (Array of Objects) Propose 2-3 viable exit strategies with brief explanations, following the guidance above.
     `;
 
-    const result = await ai.models.generateContent({
+    const result = await getClient().models.generateContent({
         model,
         contents: prompt,
         config: {
