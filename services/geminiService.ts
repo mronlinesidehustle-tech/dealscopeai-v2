@@ -1,11 +1,12 @@
 import { GoogleGenAI, GenerateContentResponse, GroundingChunk } from "@google/genai";
 import type { UploadedFile, MockupLevel, GroundingSource, Estimation, InvestmentAnalysis } from '../types';
 
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set");
+const apiKey = import.meta.env.VITE_API_KEY as string | undefined;
+if (!apiKey) {
+    throw new Error("VITE_API_KEY environment variable not set");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey });
 
 const fileToGenerativePart = (file: UploadedFile) => {
     return {
@@ -166,13 +167,9 @@ export const getInvestmentAnalysis = async (
         if (jsonMatch && jsonMatch[1]) {
             const parsedJson = JSON.parse(jsonMatch[1]);
 
-            // --- Start of Application-Side Business Logic ---
-
-            // 1. More robust helper functions to parse currency strings.
             const parseCurrency = (value: string | number): number => {
                 if (typeof value === 'number') return value;
                 if (typeof value !== 'string') return 0;
-                // Extracts the first valid number from a string, ignoring surrounding text.
                 const match = value.match(/[\d,.]+/);
                 if (!match) return 0;
                 return parseFloat(match[0].replace(/,/g, '')) || 0;
@@ -180,45 +177,33 @@ export const getInvestmentAnalysis = async (
             
             const getMaxFromRange = (range: string): number => {
                 if (typeof range !== 'string') return 0;
-                // Finds all numbers in a string (e.g., "$50k - $60k") and returns the largest.
                 const matches = range.match(/[\d,.]+/g);
                 if (!matches) return 0;
                 const numbers = matches.map(m => parseFloat(m.replace(/,/g, ''))).filter(n => !isNaN(n));
                 return numbers.length > 0 ? Math.max(...numbers) : 0;
             };
 
-            // 2. Get numeric values.
             const numericPurchasePrice = parseFloat(purchasePrice) || 0;
             const numericARV = parseCurrency(parsedJson.suggestedARV);
             const numericMaxRehab = getMaxFromRange(estimation.summary.totalEstimatedCost);
 
-            // 3. Calculate MAO using the 70% rule.
             const numericMAO = (numericARV * 0.70) - numericMaxRehab;
             
-            // 4. Format numbers for display.
             const formattedMAO = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(numericMAO);
             const formattedPurchasePrice = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(numericPurchasePrice);
 
-            // Add calculated MAO and Purchase Price to the response object for display purposes.
             parsedJson.suggestedMAO = formattedMAO;
             parsedJson.purchasePrice = formattedPurchasePrice;
 
-
-            // 5. Apply the core business rule: is the purchase price at or below the MAO?
             const fitsCriteria = numericPurchasePrice > 0 && numericMAO > 0 && numericPurchasePrice <= numericMAO;
             parsedJson.investorFit.fitsCriteria = fitsCriteria;
 
-            // 6. Create a definitive, human-readable verdict to prepend to the AI's analysis.
             const dealVerdict = fitsCriteria
                 ? 'Based on the 70% rule, the purchase price is at or below the Maximum Allowable Offer. This indicates a potentially strong investment opportunity.'
                 : `Warning: Based on the 70% rule, the Maximum Allowable Offer (MAO) for this property is ${formattedMAO}. The current purchase price of ${formattedPurchasePrice} is significantly higher than this target. For this deal to be profitable under standard investor criteria, the property would need to be acquired at or below the MAO.`;
             
-            // 7. Combine the code-generated verdict with the AI's nuanced analysis.
             parsedJson.investorFit.analysis = `${dealVerdict}\n\n**AI Analysis:**\n${parsedJson.investorFit.analysis}`;
 
-            // --- End of Application-Side Business Logic ---
-
-            // The API will return grounding sources, let's attach them.
             const groundingChunks = result.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [];
             parsedJson.groundingSources = groundingChunks
                 .filter((chunk: GroundingChunk) => chunk.web?.uri && chunk.web?.title)
