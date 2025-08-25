@@ -11,6 +11,30 @@ import { parseEstimationMarkdown } from './utils/parsing';
 type AppView = 'input' | 'report' | 'investment_analysis';
 
 const App: React.FC = () => {
+    // Check for required environment variables
+    const apiKey = import.meta.env.VITE_API_KEY;
+    if (!apiKey) {
+        return (
+            <div className="min-h-screen font-sans flex flex-col items-center justify-center p-8 bg-slate-50 text-slate-800">
+                <div className="max-w-md text-center">
+                    <h1 className="text-2xl font-bold text-red-600 mb-4">Configuration Error</h1>
+                    <p className="text-slate-600 mb-4">
+                        The VITE_API_KEY environment variable is not set. This app requires a Google AI API key to function.
+                    </p>
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
+                        <p className="font-semibold mb-2">To fix this:</p>
+                        <ol className="text-left list-decimal list-inside space-y-1">
+                            <li>Go to your Vercel project dashboard</li>
+                            <li>Navigate to Settings → Environment Variables</li>
+                            <li>Add VITE_API_KEY with your Google AI API key</li>
+                            <li>Redeploy the application</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     // Data states (caches)
     const [estimation, setEstimation] = useState<Estimation | null>(null);
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
