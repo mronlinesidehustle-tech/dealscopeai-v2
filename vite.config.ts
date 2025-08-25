@@ -3,6 +3,6 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
   // plugins: [react()], // keep if used
-  base: '/',           // ✅ important on Vercel
-  build: { outDir: 'dist' }
+  base: '/',
+  build: { outDir: 'dist', rollupOptions: { external: ['@google/genai'] } }
 })
