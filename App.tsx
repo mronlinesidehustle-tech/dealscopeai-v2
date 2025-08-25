@@ -113,7 +113,7 @@ const App: React.FC = () => {
                             &larr; Back to Rehab Estimate
                         </button>
                         <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Investment Analysis: <span className="text-sky-600 dark:text-sky-400 break-words">{analyzedAddress}</span></h2>
-                        <InvestmentAnalysisReport analysis={investmentAnalysis} />
+                        <InvestmentAnalysisReport analysis={investmentAnalysis} purchasePriceOverride={purchasePrice} />
                     </div>
                 ) : null;
             

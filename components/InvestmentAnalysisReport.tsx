@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import type { InvestmentAnalysis, ComparableProperty, ExitStrategy } from '../types';
 import { REPAIR_LEVEL_INFO } from '../constants';
-<InvestmentAnalysisReport
-  analysis={investmentAnalysis!}
-  purchasePriceOverride={purchasePrice}   // ✅ new fallback prop
-/>
+
 interface InvestmentAnalysisReportProps {
     analysis: InvestmentAnalysis;
+    purchasePriceOverride?: string;
     onUpdatePurchasePrice?: (newPrice: string) => void;
 }
 
@@ -208,7 +206,8 @@ const CompsTable: React.FC<{ comps: ComparableProperty[] }> = ({ comps }) => (
 
 export const InvestmentAnalysisReport: React.FC<InvestmentAnalysisReportProps> = ({ 
     analysis, 
-    purchasePriceOverride 
+    purchasePriceOverride,
+    onUpdatePurchasePrice
 }) => {
     const repairInfo = REPAIR_LEVEL_INFO[analysis.estimatedRepairLevel] || REPAIR_LEVEL_INFO['Unknown'];
     const darkRepairInfoColor = repairInfo.color
@@ -229,15 +228,15 @@ export const InvestmentAnalysisReport: React.FC<InvestmentAnalysisReportProps> =
         <section className="space-y-8">
             {/* Stats Grid - Responsive Layout */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {onUpdatePurchasePrice && analysis.purchasePrice ? (
+                {onUpdatePurchasePrice && (analysis.purchasePrice || purchasePriceOverride) ? (
                     <EditableStatCard 
                         title="Purchase Price" 
-                        value={analysis.purchasePrice} 
+                        value={analysis.purchasePrice || purchasePriceOverride!} 
                         onUpdate={handlePurchasePriceUpdate}
                         className="sm:col-span-1"
                     />
-                ) : analysis.purchasePrice ? (
-                    <StatCard title="Purchase Price" value={analysis.purchasePrice} className="sm:col-span-1" />
+                ) : (analysis.purchasePrice || purchasePriceOverride) ? (
+                    <StatCard title="Purchase Price" value={analysis.purchasePrice || purchasePriceOverride!} className="sm:col-span-1" />
                 ) : null}
                 
                 <StatCard title="Estimated Repair Cost" value={analysis.estimatedRepairCost} className="sm:col-span-1" />
@@ -254,7 +253,7 @@ export const InvestmentAnalysisReport: React.FC<InvestmentAnalysisReportProps> =
                 <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Deal Analysis</h3>
                 <InvestorFitCard 
                     fit={analysis.investorFit} 
-                    purchasePrice={analysis.purchasePrice}
+                    purchasePrice={analysis.purchasePrice || purchasePriceOverride}
                     suggestedMAO={analysis.suggestedMAO}
                     suggestedARV={analysis.suggestedARV}
                     estimatedRepairCost={analysis.estimatedRepairCost}
