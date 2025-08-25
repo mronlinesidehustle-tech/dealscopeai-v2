@@ -1,11 +1,12 @@
 import { GoogleGenAI, GenerateContentResponse, GroundingChunk } from "@google/genai";
 import type { UploadedFile, MockupLevel, GroundingSource, Estimation, InvestmentAnalysis } from '../types';
 
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set");
+const apiKey = import.meta.env.VITE_API_KEY as string | undefined;
+if (!apiKey) {
+    throw new Error("VITE_API_KEY environment variable not set");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey });
 
 const fileToGenerativePart = (file: UploadedFile) => {
     return {
