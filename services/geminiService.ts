@@ -1,4 +1,4 @@
-import { GoogleGenAI, GenerateContentResponse, GroundingChunk } from "@google/genai";
+import { GoogleGenerativeAI, GenerateContentResponse, GroundingChunk } from "@google/generative-ai";
 import type { UploadedFile, MockupLevel, GroundingSource, Estimation, InvestmentAnalysis } from '../types';
 
 const apiKey = import.meta.env.VITE_API_KEY as string | undefined;
@@ -6,7 +6,7 @@ if (!apiKey) {
     throw new Error("VITE_API_KEY environment variable not set");
 }
 
-const ai = new GoogleGenAI({ apiKey });
+const ai = new GoogleGenerativeAI(apiKey);
 
 const fileToGenerativePart = (file: UploadedFile) => {
     return {
@@ -18,7 +18,6 @@ const fileToGenerativePart = (file: UploadedFile) => {
 };
 
 export const getRehabEstimate = async (address: string, files: UploadedFile[], finishLevel: MockupLevel): Promise<{ markdown: string; sources: GroundingSource[] }> => {
-    const model = 'gemini-2.5-flash';
     
     const prompt = `
         System Instruction: You are an expert real-estate rehab estimator. Your task is to provide a detailed, area-by-area rehabilitation cost estimate based on photos of a property at "${address}".
@@ -70,13 +69,13 @@ export const getRehabEstimate = async (address: string, files: UploadedFile[], f
 
     const imageParts = files.map(fileToGenerativePart);
     
-    const result: GenerateContentResponse = await ai.models.generateContent({
-        model,
-        contents: { parts: [{ text: prompt }, ...imageParts] },
-        config: { 
+    const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const result: GenerateContentResponse = await model.generateContent({
+        contents: [{ parts: [{ text: prompt }, ...imageParts] }],
+        generationConfig: { 
             temperature: 0.0,
-            tools: [{googleSearch: {}}],
         },
+        tools: [{googleSearchRetrieval: {}}],
     });
     
     const groundingChunks = result.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [];
@@ -87,7 +86,7 @@ export const getRehabEstimate = async (address: string, files: UploadedFile[], f
             title: chunk.web.title,
         }));
 
-    return { markdown: result.text, sources };
+    return { markdown: result.response.text(), sources };
 };
 
 export const getInvestmentAnalysis = async (
@@ -95,7 +94,6 @@ export const getInvestmentAnalysis = async (
     estimation: Estimation,
     purchasePrice: string
 ): Promise<InvestmentAnalysis> => {
-    const model = 'gemini-2.5-flash';
     const totalRepairCost = estimation.summary.totalEstimatedCost;
 
     const prompt = `
@@ -153,17 +151,17 @@ export const getInvestmentAnalysis = async (
         *   **exitStrategies:** (Array of Objects) Propose 2-3 viable exit strategies with brief explanations, following the guidance above.
     `;
 
-    const result = await ai.models.generateContent({
-        model,
-        contents: prompt,
-        config: {
+    const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const result = await model.generateContent({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
             temperature: 0.1,
-            tools: [{ googleSearch: {} }],
-        }
+        },
+        tools: [{ googleSearchRetrieval: {} }],
     });
 
     try {
-        const jsonMatch = result.text.match(/```json\n([\s\S]*?)\n```/);
+        const jsonMatch = result.response.text().match(/```json\n([\s\S]*?)\n```/);
         if (jsonMatch && jsonMatch[1]) {
             const parsedJson = JSON.parse(jsonMatch[1]);
 
@@ -217,7 +215,7 @@ export const getInvestmentAnalysis = async (
             throw new Error("Could not find JSON in the model's response for investment analysis.");
         }
     } catch (e) {
-        console.error("Failed to parse investment analysis JSON:", e, "Raw response:", result.text);
+        console.error("Failed to parse investment analysis JSON:", e, "Raw response:", result.response.text());
         throw new Error("Failed to get a valid investment analysis from the AI.");
     }
 };
